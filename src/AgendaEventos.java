@@ -14,7 +14,7 @@ public class AgendaEventos {
                 inicio
             case 2:
                 registro
-            default: 
+            default: ad
                 error
 
                
