@@ -1,5 +1,3 @@
-
-
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -11,6 +9,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 
 public class GestionUsuarios {
 
+
     /**
      * Lista los usuarios de la base de datos
      */
@@ -21,18 +20,22 @@ public class GestionUsuarios {
         try {
             sentencia = conexion.createStatement();
 
-            ResultSet resultado = sentencia.executeQuery("SELECT * FROM user");
+            ResultSet resultado = sentencia.executeQuery("SELECT * FROM usuarios");
 
             while (resultado.next()) {
                 // Procesa los datos
                 int id = resultado.getInt("id");
                 String user_name = resultado.getString("user_name");
-                //String password = resultado.getString("password");
+                String dni = resultado.getString("dni");
+                String nombre = resultado.getString("nombre");
+                String primerApellido = resultado.getString("primerApellido");
+                String segundoApellido = resultado.getString("segundoApellido");
                 Timestamp createdAt = resultado.getTimestamp("created_at");
 
                 // Procesa los datos
                 System.out.println(
-                        "ID: " + id + ", user_name: " + user_name + ", createdAt: " + createdAt);
+                        "ID: " + id + ", user_name: " + user_name + ", dni: " + dni + ", Nombre: " + nombre
+                                + ", Apellidos: " + primerApellido + " " + segundoApellido + " Creado: " + createdAt);
             }
 
             resultado.close();
@@ -47,7 +50,7 @@ public class GestionUsuarios {
      * Comprueba si un usuario y contraseña son correctos
      * 
      * @param user_name Usuario
-     * @param password Contraseña
+     * @param password  Contraseña
      * @return true si el usuario y contraseña son correctos
      */
     public static boolean loginUsuario(String user_name, String password) {
@@ -58,7 +61,8 @@ public class GestionUsuarios {
         try {
             sentencia = conexion.createStatement();
 
-            ResultSet resultado = sentencia.executeQuery("SELECT * FROM user WHERE user_name LIKE '" + user_name + "'");
+            ResultSet resultado = sentencia
+                    .executeQuery("SELECT * FROM usuarios WHERE user_name LIKE '" + user_name + "'");
 
             if (resultado.next()) {
                 // Si existe el usuario valida la contraseña con BCrypt
@@ -83,7 +87,7 @@ public class GestionUsuarios {
      * Cambia la contraseña de un usuario
      * 
      * @param user_name Usuario
-     * @param password Nueva contraseña
+     * @param password  Nueva contraseña
      * @return true si se cambió la contraseña
      */
     public static boolean cambiarPassword(String user_name, String password) {
@@ -93,7 +97,7 @@ public class GestionUsuarios {
         Statement sentencia;
         try {
             sentencia = conexion.createStatement();
-            int resultado = sentencia.executeUpdate("UPDATE user SET password='" + generarStringHash2Y(password)
+            int resultado = sentencia.executeUpdate("UPDATE usuarios SET password='" + generarStringHash2Y(password)
                     + "' WHERE user_name LIKE '" + user_name + "'");
 
             if (resultado == 1) {
@@ -139,23 +143,24 @@ public class GestionUsuarios {
     /**
      * Inicia sesión de usuario
      * Solicita credenciales de inicio de sesión, y si son correctas devuelve el
-     * nombre de usuario.
+     * boolean
+     * true
      * 
-     * @return Usuario que ha iniciado sesión
+     * @return falso o verdadero según se haya podido o no iniciar sesión
      */
-    public static String iniciarSesion() {
-        do {
-            System.out.println("LOGIN DE USUARIO");
-            System.out.print("Usuario: ");
-            String usuario = System.console().readLine();
-            System.out.print("Contraseña: ");
-            String password = new String(System.console().readPassword());
-            if (loginUsuario(usuario, password)) {
-                return usuario;
-            } else {
-                System.out.println("Usuario o contraseña incorrectos");
-            }
-        } while (true);
+    public static boolean iniciarSesion() {
+        System.out.println("LOGIN DE USUARIO");
+        System.out.print("Usuario: ");
+        String usuario = System.console().readLine();
+        System.out.print("Contraseña: ");
+        String password = new String(System.console().readPassword());
+        if (loginUsuario(usuario, password)) {
+            return true;
+        } else {
+            System.out.println("Usuario o contraseña incorrectos");
+            return false;
+        }
+
     }
 
     /**
@@ -166,82 +171,66 @@ public class GestionUsuarios {
      * @return true si se creó el usuario
      */
     public static boolean crearUsuario() {
+
+        String password;
+        String passwordValidate;
+
         Connection conexion = ConexionBase.conectar();
         Statement sentencia;
+
+        Usuario user = new Usuario();
+
         try {
             sentencia = conexion.createStatement();
             System.out.print("Usuario: ");
-            String usuario = System.console().readLine();
-            System.out.print("Contraseña: ");
-            String password = new String(System.console().readPassword());
-            int resultado = sentencia.executeUpdate("INSERT INTO user (user_name, password) VALUES ('" + usuario + "', '"
-                    + generarStringHash2Y(password) + "')");
+            user.setNombreUsuario(System.console().readLine());
+
+            do {
+
+                System.out.print("Contraseña: ");
+                password = String.valueOf(System.console().readPassword());
+
+                System.out.print("Vuelva a introducir la contraseña: ");
+                passwordValidate = new String(System.console().readPassword());
+
+                if (passwordValidate.compareTo(password) != 0) {
+                    System.out.println("Las contraseñas no coinciden");
+                }
+
+            } while (passwordValidate.compareTo(password) != 0);
+
+            user.setPassword(password);
+
+            System.out.print("DNI: ");
+            user.setDni(System.console().readLine());
+
+            System.out.print("Nombre: ");
+            user.setNombre(System.console().readLine());
+
+            System.out.print("Primer Apellido: ");
+            user.setPrimerApellido(System.console().readLine());
+
+            System.out.print("Segundo Apellido: ");
+            user.setSegundoApellido(System.console().readLine());
+
+            System.out.print("Fecha de Nacimiento (XX/XX/XXXX): ");
+            user.setFechaNacimiento(System.console().readLine());
+
+            String sql = "INSERT INTO usuarios (user_name, password, dni, nombre, primerApellido, segundoApellido, fechaNacimiento) VALUES ('"
+                    + user.getNombreUsuario() + "', '"
+                    + generarStringHash2Y(user.getPassword()) + "', '" + user.getDni() + "',  '" + user.getNombre()
+                    + "',  '" + user.getPrimerApellido()
+                    + "',  '" + user.getSegundoApellido() + "',  '" + user.getFechaNacimiento() + "')";
+
+            int resultado = sentencia.executeUpdate(sql);
             sentencia.close();
             conexion.close();
             return resultado == 1;
         } catch (SQLException e) {
             e.printStackTrace();
-            //System.out.println("Error al crear el usuario");
+            System.out.println("Error al crear el usuario");
             return false;
         }
-    }
-
-    /**
-     * Método principal de ejemplo
-     */
-    public static void main(String[] args) {
-        System.out.println("\n*******************");
-        System.out.println("GESTIÓN DE USUARIOS");
-        System.out.println("*******************\n");
-        System.out.println("BASE DE DATOS: " + ConexionBase.DATABASE + " en " + ConexionBase.HOST + ":" + ConexionBase.PORT);
-        String opcion;
-        do {
-            System.out.println();
-            System.out.println("1. LISTADO DE USUARIOS:");
-            System.out.println("2. CREACIÓN DE USUARIO");
-            System.out.println("3. LOGIN DE USUARIO");
-            System.out.println("4. CAMBIO DE CONTRASEÑA");
-            System.out.println("0. SALIR");
-
-            System.out.println();
-            System.out.print("Opción: ");
-            opcion = System.console().readLine();
-            System.out.println();
-
-            switch (opcion) {
-                case "1":
-                    listarUsuarios();
-                    break;
-                case "2":
-                    System.out.println(crearUsuario() ? "Usuario creado" : "Error al crear el usuario");
-                    break;
-                case "3":
-                    System.out.println("LOGIN DE USUARIO");
-                    System.out.print("Usuario: ");
-                    String usuario = System.console().readLine();
-                    System.out.print("Contraseña: ");
-                    String password = new String(System.console().readPassword());
-                    System.out.println(loginUsuario(usuario, password) ? "Login OK" : "Login KO");
-                    break;
-                case "4":
-                    System.out.println("CAMBIO DE CONTRASEÑA");
-                    System.out.print("Usuario: ");
-                    String usuarioCambio = System.console().readLine();
-                    System.out.print("Nueva contraseña: ");
-                    String newPassword = new String(System.console().readPassword());
-                    System.out.println(
-                            cambiarPassword(usuarioCambio, newPassword) ? "Contraseña cambiada"
-                                    : "Error al cambiar la contraseña");
-                    break;
-                case "0":
-                    System.out.println("Hasta pronto...\n");
-                    break;
-                default:
-                    System.out.println("Opción no válida");
-                    break;
-            }
-        } while (!opcion.equals("0"));
-
     }
 
 }
