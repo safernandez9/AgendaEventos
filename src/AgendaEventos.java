@@ -6,9 +6,9 @@ public class AgendaEventos {
         String opcion;
         Usuario user;
 
-        System.out.println("\n*******************");
+        System.out.println("\n********************");
         System.out.println("Bienvenido a AgendaEventos");
-        System.out.println("*******************\n");
+        System.out.println("********************\n");
 
         do {
             System.out.println();
