@@ -8,6 +8,7 @@ public class Evento {
     private String nombreEvento;
     private String fechaInicioEvento;
     private String fechaFinEvento;
+    private String creador;
     private String ubicacionEvento;
     private String descripcion;
 
@@ -53,6 +54,18 @@ public class Evento {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public void setIdEvento(int idEvento) {
+        this.idEvento = idEvento;
+    }
+
+    public String getCreador() {
+        return creador;
+    }
+
+    public void setCreador(String creador) {
+        this.creador = creador;
     }
 
 }

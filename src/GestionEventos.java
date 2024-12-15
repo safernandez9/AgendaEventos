@@ -24,6 +24,7 @@ public class GestionEventos {
                 String nombreEvento = resultado.getString("nombre");
                 String fechaInicio = resultado.getString("fechaInicio");
                 String fechaFin = resultado.getString("fechaFin");
+                String creador = resultado.getString("creador");
                 String ubicacion = resultado.getString("ubicación");
                 String descripcion = resultado.getString("descripción");
                 Timestamp createdAt = resultado.getTimestamp("created_at");
@@ -32,7 +33,7 @@ public class GestionEventos {
                 System.out.println(
                         "ID: " + id + ", Nombre: " + nombreEvento + ", Fecha de inicio: " + fechaInicio
                                 + ", Fecha de fin: "
-                                + fechaFin + ", Ubicación: " + ubicacion + ", Descripción: " + descripcion
+                                + fechaFin + ", Creador: " + creador + ", Ubicación: " + ubicacion + ", Descripción: " + descripcion
                                 + ", Creado: " + createdAt);
             }
 
@@ -50,7 +51,7 @@ public class GestionEventos {
      * 
      * @return true si se creó el evento
      */
-    public static boolean crearEvento() {
+    public static boolean crearEvento(String creador) {
 
         Connection conexion = ConexionBase.conectar();
         Statement sentencia;
@@ -72,9 +73,9 @@ public class GestionEventos {
             System.out.print("(OPCIONAL) Descripción: ");
             String descripcion = System.console().readLine();
 
-            String sql = "INSERT INTO eventos (nombre, fechaInicio, fechaFin, ubicación, descripción) VALUES ('"
+            String sql = "INSERT INTO eventos (nombre, fechaInicio, fechaFin, creador, ubicación, descripción) VALUES ('"
                     + nombreEvento + "', '"
-                    + fechaInicio + "',  '" + fechaFin + "',  '" + ubicacion
+                    + fechaInicio + "',  '" + fechaFin + "', '" + creador + "', '" + ubicacion
                     + "',  '" + descripcion + "')";
 
             int resultado = sentencia.executeUpdate(sql);

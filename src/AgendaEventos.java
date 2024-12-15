@@ -4,6 +4,7 @@ public class AgendaEventos {
     public static void main(String[] args) {
 
         String opcion;
+        Usuario user;
 
         System.out.println("\n*******************");
         System.out.println("Bienvenido a AgendaEventos");
@@ -11,7 +12,7 @@ public class AgendaEventos {
 
         do {
             System.out.println();
-            System.out.println("1. INICIAR SESIÓN:");
+            System.out.println("1. INICIAR SESIÓN");
             System.out.println("2. CREACIÓN DE USUARIO");
             System.out.println("0. SALIR");
 
@@ -22,14 +23,16 @@ public class AgendaEventos {
 
             switch (opcion) {
                 case "1":
-                    if (GestionUsuarios.iniciarSesion()) {
-                        Menus.programaPrincipal();
+                    user = GestionUsuarios.iniciarSesion();
+                    if (user != null) {
+                        Menus.programaPrincipal(user);
                     }
                     break;
                 case "2":
-                    if (GestionUsuarios.crearUsuario()) {
+                    user = GestionUsuarios.crearUsuario();
+                    if (user != null) {
                         System.out.println("Usuario creado");
-                        Menus.programaPrincipal();
+                        Menus.programaPrincipal(user);
                     } else {
                         System.out.println("Error al crear usuario");
                     }

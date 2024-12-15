@@ -9,7 +9,6 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 
 public class GestionUsuarios {
 
-
     /**
      * Lista los usuarios de la base de datos
      */
@@ -34,7 +33,7 @@ public class GestionUsuarios {
 
                 // Procesa los datos
                 System.out.println(
-                        "ID: " + id + ", user_name: " + user_name + ", dni: " + dni + ", Nombre: " + nombre
+                        "ID: " + id + ", User_name: " + user_name + ", Dni: " + dni + ", Nombre: " + nombre
                                 + ", Apellidos: " + primerApellido + " " + segundoApellido + " Creado: " + createdAt);
             }
 
@@ -47,14 +46,56 @@ public class GestionUsuarios {
     }
 
     /**
+     * Muestra los datos del usuario conectado.
+     * 
+     * @param user Nombre del usuario que solicita la información
+     */
+    public static void listarUsuarioActivo(String user) {
+        Connection conexion = ConexionBase.conectar();
+
+        Statement sentencia;
+        try {
+            sentencia = conexion.createStatement();
+
+            ResultSet resultado = sentencia.executeQuery("SELECT * FROM usuarios WHERE user_name LIKE '" + user + "'");
+
+                // Procesa los datos
+                int id = resultado.getInt("id");
+                String user_name = resultado.getString("user_name");
+                String dni = resultado.getString("dni");
+                String nombre = resultado.getString("nombre");
+                String primerApellido = resultado.getString("primerApellido");
+                String segundoApellido = resultado.getString("segundoApellido");
+                Timestamp createdAt = resultado.getTimestamp("created_at");
+
+                // Procesa los datos
+                System.out.println(
+                        "ID: " + id + ", user_name: " + user_name + ", dni: " + dni + ", Nombre: " + nombre
+                                + ", Apellidos: " + primerApellido + " " + segundoApellido + " Creado: " + createdAt);
+            
+
+            resultado.close();
+            sentencia.close();
+            conexion.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
      * Comprueba si un usuario y contraseña son correctos
      * 
      * @param user_name Usuario
      * @param password  Contraseña
-     * @return true si el usuario y contraseña son correctos
+     * @return la referencia del objeto usuario si el usuario y contraseña son
+     *         correctos, NULL si no
      */
-    public static boolean loginUsuario(String user_name, String password) {
+    public static Usuario loginUsuario(String user_name, String password) {
+
         boolean loginOk = false;
+        Usuario user = null;
+
         Connection conexion = ConexionBase.conectar();
 
         Statement sentencia;
@@ -72,15 +113,61 @@ public class GestionUsuarios {
                         passwordHashed);
                 loginOk = resultStrict.verified;
                 loginOk = validarHash2Y(password, resultado.getString("password"));
+
+                if (loginOk) {
+
+                    user = new Usuario();
+
+                    user.setIdUsuario(resultado.getInt("id"));
+                    user.setNombreUsuario(resultado.getString("user_name"));
+                    user.setDni(resultado.getString("dni"));
+                    user.setNombre(resultado.getString("nombre"));
+                    user.setPrimerApellido(resultado.getString("primerApellido"));
+                    user.setSegundoApellido(resultado.getString("segundoApellido"));
+                    user.setFechaNacimiento(resultado.getString("fechaNacimiento"));
+
+                }
             }
 
             resultado.close();
             sentencia.close();
             conexion.close();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return loginOk;
+
+        return user;
+
+    }
+
+    /**
+     * Pide la nueva contraseña y la confirma antes de llamar al metodo
+     * cambiarPassword que la actualizará en la base de datos
+     * 
+     * @param user Objeto que contiene el user_name del usuario activo
+     */
+    public static void cambiarContraseña(Usuario user) {
+
+        String password;
+        String passwordValidate;
+
+        do {
+
+            System.out.print("Nueva contraseña: ");
+            password = String.valueOf(System.console().readPassword());
+
+            System.out.print("Vuelva a introducir la contraseña: ");
+            passwordValidate = new String(System.console().readPassword());
+
+            if (passwordValidate.compareTo(password) != 0) {
+                System.out.println("Las contraseñas no coinciden");
+            }
+
+        } while (passwordValidate.compareTo(password) != 0);
+
+        cambiarPassword(user.getNombreUsuario(), password);
+
     }
 
     /**
@@ -146,19 +233,25 @@ public class GestionUsuarios {
      * boolean
      * true
      * 
-     * @return falso o verdadero según se haya podido o no iniciar sesión
+     * @return null si no se ha podido iniciar sesióny el objeto Usuario con los
+     *         datos del propio usuario si se ha podido.
      */
-    public static boolean iniciarSesion() {
+    public static Usuario iniciarSesion() {
+
         System.out.println("LOGIN DE USUARIO");
         System.out.print("Usuario: ");
         String usuario = System.console().readLine();
         System.out.print("Contraseña: ");
         String password = new String(System.console().readPassword());
-        if (loginUsuario(usuario, password)) {
-            return true;
+
+        Usuario user = loginUsuario(usuario, password);
+
+        if (user != null) {
+            System.out.println("Iniciando sesión...");
+            return user;
         } else {
             System.out.println("Usuario o contraseña incorrectos");
-            return false;
+            return null;
         }
 
     }
@@ -168,9 +261,9 @@ public class GestionUsuarios {
      * Solicita credenciales de nuevo usuario, y si se crea correctamente devuelve
      * true
      * 
-     * @return true si se creó el usuario
+     * @return la referencia al usuario si se creó el usuario, null si no
      */
-    public static boolean crearUsuario() {
+    public static Usuario crearUsuario() {
 
         String password;
         String passwordValidate;
@@ -225,11 +318,11 @@ public class GestionUsuarios {
             int resultado = sentencia.executeUpdate(sql);
             sentencia.close();
             conexion.close();
-            return resultado == 1;
+            return user;
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("Error al crear el usuario");
-            return false;
+            return null;
         }
     }
 

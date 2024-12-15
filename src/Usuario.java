@@ -72,4 +72,8 @@ public class Usuario {
         this.fechaNacimiento = fechaNacimiento;
     }
 
+    public void setIdUsuario(int idUsuario) {
+        this.idUsuario = idUsuario;
+    }
+
 }
