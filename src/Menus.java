@@ -141,7 +141,7 @@ public class Menus {
                     GestionUsuarios.cambiarContraseña(user);
                     break;
                 case "2":
-                    GestionUsuarios.listarUsuarioActivo(user.getNombre());
+                    GestionUsuarios.listarUsuarioActivo(user.getNombreUsuario());
                     break;
                 case "0":
                     System.out.println("Volviendo atrás...\n");
