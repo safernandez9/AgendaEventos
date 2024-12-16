@@ -59,7 +59,8 @@ public class GestionUsuarios {
 
             ResultSet resultado = sentencia.executeQuery("SELECT * FROM usuarios WHERE user_name LIKE '" + user + "'");
 
-                // Procesa los datos
+            while (resultado.next()) {
+                // Procesa los datos de cada fila devuelta
                 int id = resultado.getInt("id");
                 String user_name = resultado.getString("user_name");
                 String dni = resultado.getString("dni");
@@ -68,11 +69,11 @@ public class GestionUsuarios {
                 String segundoApellido = resultado.getString("segundoApellido");
                 Timestamp createdAt = resultado.getTimestamp("created_at");
 
-                // Procesa los datos
+                // Muestra los datos procesados
                 System.out.println(
                         "ID: " + id + ", user_name: " + user_name + ", dni: " + dni + ", Nombre: " + nombre
                                 + ", Apellidos: " + primerApellido + " " + segundoApellido + " Creado: " + createdAt);
-            
+            }
 
             resultado.close();
             sentencia.close();
